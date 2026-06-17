@@ -438,11 +438,11 @@ function SetupBanner() {
       }}
     >
       <strong style={{ color: "var(--warn)" }}>Setup needed.</strong> The agents
-      need an Anthropic API key. Copy{" "}
-      <code className="mono">.env.example</code> to{" "}
-      <code className="mono">.env.local</code>, set{" "}
-      <code className="mono">ANTHROPIC_API_KEY</code>, and restart the dev
-      server. Get a key at{" "}
+      need an Anthropic API key. Set{" "}
+      <code className="mono">ANTHROPIC_API_KEY</code> in your environment (on
+      Vercel: Project → Settings → Environment Variables) and redeploy. Locally,
+      copy <code className="mono">.env.example</code> to{" "}
+      <code className="mono">.env.local</code>. Get a key at{" "}
       <a
         href="https://console.anthropic.com/settings/keys"
         target="_blank"
