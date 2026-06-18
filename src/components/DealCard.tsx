@@ -22,10 +22,18 @@ const confidenceColor: Record<string, string> = {
 
 export default function DealCard({
   deal,
+  context = "discover",
+  inInventory = false,
+  onAdd,
   onResell,
+  onRemove,
 }: {
   deal: Deal;
-  onResell: (deal: Deal) => void;
+  context?: "discover" | "inventory";
+  inInventory?: boolean;
+  onAdd?: (deal: Deal) => void;
+  onResell?: (deal: Deal) => void;
+  onRemove?: (deal: Deal) => void;
 }) {
   const positive = deal.profit > 0;
   return (
@@ -193,25 +201,81 @@ export default function DealCard({
             fontWeight: 500,
           }}
         >
-          View listing ↗
+          {context === "inventory" ? "View source ↗" : "View listing ↗"}
         </a>
+
+        {context === "discover" &&
+          (inInventory ? (
+            <span
+              style={{
+                flex: 1,
+                textAlign: "center",
+                padding: "9px 0",
+                borderRadius: 9,
+                border: "1px solid var(--accent-dim)",
+                background: "var(--accent-dim)",
+                color: "var(--accent)",
+                fontWeight: 600,
+                fontSize: 13,
+              }}
+            >
+              ✓ In inventory
+            </span>
+          ) : (
+            <button
+              onClick={() => onAdd?.(deal)}
+              style={{
+                flex: 1,
+                padding: "9px 0",
+                borderRadius: 9,
+                border: "none",
+                background: "var(--accent)",
+                color: "#04140d",
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+              }}
+            >
+              + Bought it
+            </button>
+          ))}
+
+        {context === "inventory" && (
+          <button
+            onClick={() => onResell?.(deal)}
+            style={{
+              flex: 1,
+              padding: "9px 0",
+              borderRadius: 9,
+              border: "none",
+              background: "var(--accent)",
+              color: "#04140d",
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: "pointer",
+            }}
+          >
+            Send to reseller →
+          </button>
+        )}
+      </div>
+
+      {context === "inventory" && (
         <button
-          onClick={() => onResell(deal)}
+          onClick={() => onRemove?.(deal)}
           style={{
-            flex: 1,
-            padding: "9px 0",
-            borderRadius: 9,
+            background: "none",
             border: "none",
-            background: "var(--accent)",
-            color: "#04140d",
-            fontWeight: 600,
-            fontSize: 13,
+            borderTop: "1px solid var(--border)",
+            color: "var(--muted)",
+            fontSize: 12,
+            padding: "8px 0",
             cursor: "pointer",
           }}
         >
-          Draft resale →
+          Remove from inventory
         </button>
-      </div>
+      )}
     </div>
   );
 }

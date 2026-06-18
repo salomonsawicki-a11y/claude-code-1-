@@ -134,10 +134,11 @@ function harvest(content: Anthropic.ContentBlock[]): {
 
 export async function discover(req: DiscoverRequest): Promise<DiscoverResponse> {
   const client = getAnthropic();
+  const isAuto = req.mode === "auto" || !req.query.trim();
 
-  // Seed with live eBay listings when configured.
+  // Seed with live eBay listings when configured and we have a query to search.
   let seed = "";
-  if (ebayConfigured()) {
+  if (ebayConfigured() && req.query.trim()) {
     const ebayDeals = await searchEbay(req.query, req.maxPrice);
     if (ebayDeals.length) {
       seed =
@@ -156,8 +157,18 @@ export async function discover(req: DiscoverRequest): Promise<DiscoverResponse> 
     .filter(Boolean)
     .join(" ");
 
-  const userPrompt =
-    `Find under-retail resale opportunities for: ${req.query}. ${constraints}` + seed;
+  const userPrompt = isAuto
+    ? `AUTONOMOUS HUNT. No specific item was requested — YOU decide what to look ` +
+      `for. Scan the live web for the best resale-arbitrage opportunities ` +
+      `available right now. Pick a diverse mix across high-resale-velocity ` +
+      `categories (e.g. sneakers, consumer electronics, Lego sets, trading ` +
+      `cards, designer apparel, small appliances, collectibles) and hunt for ` +
+      `genuinely underpriced listings: clearance, liquidation, open-box, ` +
+      `mispriced used items, and sold-out items reselling above original. ` +
+      `Favor variety over many items from one category. ${constraints}` +
+      (req.query.trim() ? ` Optional focus hint: ${req.query}.` : "")
+    : `Find under-retail resale opportunities for: ${req.query}. ${constraints}` +
+      seed;
 
   const messages: Anthropic.MessageParam[] = [
     { role: "user", content: userPrompt },

@@ -38,9 +38,11 @@ function money(n: number, currency = "USD") {
 export default function ResellModal({
   deal,
   onClose,
+  onListed,
 }: {
   deal: Deal;
   onClose: () => void;
+  onListed?: (deal: Deal) => void;
 }) {
   const [marketplace, setMarketplace] = useState<Marketplace>("eBay");
   const [loading, setLoading] = useState(false);
@@ -67,6 +69,7 @@ export default function ResellModal({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to draft listing.");
       setListing(data.listing as ResellListing);
+      onListed?.(deal);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {

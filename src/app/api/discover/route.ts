@@ -14,16 +14,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  if (!body.query || !body.query.trim()) {
+  const isAuto = body.mode === "auto";
+  if (!isAuto && (!body.query || !body.query.trim())) {
     return NextResponse.json(
-      { error: "A search query is required." },
+      { error: "A search query is required for a personalized search." },
       { status: 400 },
     );
   }
 
   try {
     const result = await discover({
-      query: body.query.trim(),
+      query: (body.query || "").trim(),
+      mode: isAuto ? "auto" : "personalized",
       maxPrice: body.maxPrice ? Number(body.maxPrice) : undefined,
       minMarginPct: body.minMarginPct ? Number(body.minMarginPct) : undefined,
     });

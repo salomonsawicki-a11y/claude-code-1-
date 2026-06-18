@@ -47,6 +47,8 @@ export interface RawDeal {
 
 export interface DiscoverRequest {
   query: string;
+  /** "auto" = the agent picks categories itself; "personalized" = use `query`. */
+  mode?: "auto" | "personalized";
   maxPrice?: number;
   minMarginPct?: number;
 }
@@ -67,6 +69,14 @@ export type Marketplace =
   | "Depop"
   | "StockX"
   | "Etsy";
+
+/** A deal the user has acquired; lives in the browser-side inventory. */
+export interface InventoryItem extends Deal {
+  /** When it was added to inventory (epoch ms). */
+  acquiredAt: number;
+  /** "owned" once bought; "listed" once a resale draft has been generated. */
+  status: "owned" | "listed";
+}
 
 export interface ResellRequest {
   deal: Deal;
