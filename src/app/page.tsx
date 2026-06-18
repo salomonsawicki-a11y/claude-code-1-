@@ -134,7 +134,18 @@ export default function Home() {
           minMarginPct: minMargin ? Number(minMargin) : undefined,
         }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data: DiscoverResponse & { error?: string };
+      try {
+        data = JSON.parse(text);
+      } catch {
+        // Non-JSON body = the hosting platform returned an error/timeout page.
+        throw new Error(
+          res.status === 504 || /timeout|timed out/i.test(text)
+            ? "The hunt took too long and timed out. Try again, narrow it with a search term, or set a max price to speed it up."
+            : `Search failed (${res.status}). Please try again.`,
+        );
+      }
       if (!res.ok) throw new Error(data.error || "Discovery failed.");
       setResult(data as DiscoverResponse);
     } catch (e) {

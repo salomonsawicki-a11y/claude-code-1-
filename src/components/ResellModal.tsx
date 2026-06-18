@@ -66,8 +66,19 @@ export default function ResellModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ deal, marketplace }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to draft listing.");
+      const text = await res.text();
+      let data: { listing?: ResellListing; error?: string };
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(
+          res.status === 504 || /timeout|timed out/i.test(text)
+            ? "The reseller agent timed out. Please try again."
+            : `Listing draft failed (${res.status}). Please try again.`,
+        );
+      }
+      if (!res.ok || !data.listing)
+        throw new Error(data.error || "Failed to draft listing.");
       setListing(data.listing as ResellListing);
       onListed?.(deal);
     } catch (e) {
