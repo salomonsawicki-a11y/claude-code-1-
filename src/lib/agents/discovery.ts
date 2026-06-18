@@ -49,7 +49,8 @@ fenced JSON code block (\`\`\`json) and nothing after it, matching exactly:
   ]
 }
 
-All prices are numbers in the listing's currency. Return 5-10 deals when possible.`;
+All prices are numbers in the listing's currency. Return 3-6 strong deals.
+Work efficiently: a few searches, then output the JSON. Don't over-research.`;
 
 interface AgentJson {
   summary?: string;
@@ -174,20 +175,32 @@ export async function discover(req: DiscoverRequest): Promise<DiscoverResponse> 
     { role: "user", content: userPrompt },
   ];
 
+  // Hosting platforms cap serverless functions (~60s on Vercel Hobby). Keep the
+  // whole agent run inside a soft deadline so we return whatever we found
+  // rather than getting killed mid-request.
+  const DEADLINE_MS = 52_000;
+  const startedAt = Date.now();
+
   // Manual loop so we can ride out the server-side web-search tool (pause_turn).
   let finalContent: Anthropic.ContentBlock[] = [];
-  for (let i = 0; i < 6; i++) {
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: 8000,
-      thinking: { type: "adaptive" },
-      system: SYSTEM,
-      tools: [
-        { type: "web_search_20260209", name: "web_search", max_uses: 8 },
-        { type: "web_fetch_20260209", name: "web_fetch", max_uses: 8 },
-      ] as Anthropic.Messages.ToolUnion[],
-      messages,
-    });
+  for (let i = 0; i < 3; i++) {
+    const remaining = DEADLINE_MS - (Date.now() - startedAt);
+    if (remaining < 8_000) break; // not enough time for another round
+    const response = await client.messages.create(
+      {
+        model: MODEL,
+        max_tokens: 6000,
+        thinking: { type: "adaptive" },
+        output_config: { effort: "low" },
+        system: SYSTEM,
+        tools: [
+          { type: "web_search_20260209", name: "web_search", max_uses: 5 },
+          { type: "web_fetch_20260209", name: "web_fetch", max_uses: 4 },
+        ] as Anthropic.Messages.ToolUnion[],
+        messages,
+      },
+      { timeout: remaining },
+    );
 
     finalContent = response.content;
     if (response.stop_reason === "pause_turn") {

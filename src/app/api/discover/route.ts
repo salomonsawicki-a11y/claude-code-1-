@@ -3,8 +3,9 @@ import { discover } from "@/lib/agents/discovery";
 import { MissingApiKeyError } from "@/lib/anthropic";
 import type { DiscoverRequest } from "@/lib/types";
 
-// Web research can run for a while — give the route room.
-export const maxDuration = 300;
+// Vercel caps function duration by plan (~60s on Hobby). Match the ceiling so
+// the agent's own soft deadline (52s) finishes first and returns results.
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   let body: DiscoverRequest;

@@ -3,7 +3,7 @@ import { draftListing } from "@/lib/agents/resell";
 import { MissingApiKeyError } from "@/lib/anthropic";
 import type { ResellRequest } from "@/lib/types";
 
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   let body: ResellRequest;
